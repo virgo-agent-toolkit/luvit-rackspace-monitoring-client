@@ -174,7 +174,6 @@ function Client:request(method, path, payload, expectedStatusCode, callback)
   async.waterfall({
     function(callback)
       if self:tokenValid() then
-        log.debug('Token found valid')
         callback()
         return
       end
