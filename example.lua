@@ -1,4 +1,4 @@
-local Client = require('rackspace-monitoring').Client
+local Client = require('./init').Client
 
 local client = Client:new('', '', nil)
 client.entities.get(function(err, results)
@@ -6,5 +6,10 @@ client.entities.get(function(err, results)
     p(err)
     return
   end
-  p(results)
+  for k, v in pairs(results.values) do
+    print('ID = ' .. v.id)
+    print('  LABEL = ' .. v.label)
+    print('  MANAGED = ' .. tostring(v.managed))
+    print('')
+  end
 end)
