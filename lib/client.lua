@@ -19,6 +19,8 @@ local string = require('string')
 local fmt = require('string').format
 local https = require('https')
 local url = require('url')
+local table = require('table')
+local Error = require('core').Error
 
 local async = require('async')
 
@@ -156,7 +158,7 @@ function Client:initialize(userId, key, options)
   self.agent_tokens = {}
   self:_init()
   ClientBase.initialize(self, MAAS_CLIENT_DEFAULT_HOST, 443,
-                            MAAS_CLIENT_DEFAULT_VERSION, 'public', options)
+                        MAAS_CLIENT_DEFAULT_VERSION, 'public', options)
 end
 
 function Client:_init()
@@ -181,6 +183,33 @@ function Client:_init()
   end
 end
 
+function Client:auth(authUrl, username, keyOrPassword, callback)
+  local apiKeyClient = KeystoneClient:new(authUrl, { username = self.userId, apikey = keyOrPassword })
+  local passwordClient = KeystoneClient:new(authUrl, { username = self.userId, password = keyOrPassword })
+  local errors = {}
+  local responses = {}
+
+  function iterator(client, callback)
+    client:tenantIdAndToken(function(err, obj)
+      if err then
+        table.insert(errors, err)
+        callback()
+      else
+        table.insert(responses, obj)
+        callback()
+      end
+    end)
+  end
+
+  async.forEach({ apiKeyClient, passwordClient }, iterator, function()
+    if #responses > 0 then
+      callback(nil, responses[1])
+    else
+      callback(errors)
+    end
+  end)
+end
+
 --[[
 The request.
 callback.function(err, results)
@@ -196,8 +225,7 @@ function Client:request(method, path, payload, expectedStatusCode, callback)
         callback()
         return
       end
-      authPayload = KeystoneClient:new(authUrl, { username = self.userId, apikey = self.key })
-      authPayload:tenantIdAndToken(function(err, obj)
+      self:auth(authUrl, self.userId, self.key, function(err, obj)
         if err then
           callback(err)
           return
