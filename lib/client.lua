@@ -15,9 +15,13 @@ limitations under the License.
 --]]
 local JSON = require('json')
 local Object = require('core').Object
-local async = require('async')
+local string = require('string')
 local fmt = require('string').format
 local https = require('https')
+local url = require('url')
+
+local async = require('async')
+
 local misc = require('./misc')
 local errors = require('./errors')
 
@@ -126,7 +130,7 @@ function ClientBase:request(method, path, payload, expectedStatusCode, callback)
         if res.statusCode == 200 then
           self:_parseResponse(data, callback)
         elseif res.statusCode == 201 or res.statusCode == 204 then
-          callback(nil, res.headers['Location'] or nil)
+          callback(nil, res.headers['location'])
         else
           data = self:_parseData(data)
           callback(errors.HttpResponseError:new(res.statusCode, method, path, data))
@@ -134,6 +138,9 @@ function ClientBase:request(method, path, payload, expectedStatusCode, callback)
       end
     end)
   end)
+  if payload then
+    req:write(payload)
+  end
   req:done()
 end
 
@@ -159,6 +166,18 @@ function Client:_init()
 
   self.agent_tokens.get = function(callback)
     self:request('GET', '/agent_tokens', nil, 200, callback)
+  end
+
+  self.agent_tokens.create = function(options, callback)
+    local body = {}
+    body['label'] = options.label
+    self:request('POST', '/agent_tokens', body, 201, function(err, tokenUrl)
+      if err then
+        callback(err)
+        return
+      end
+      callback(nil, string.match(tokenUrl, 'agent_tokens/(.*)'))
+    end)
   end
 end
 
