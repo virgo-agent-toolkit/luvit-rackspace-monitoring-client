@@ -15,7 +15,7 @@ limitations under the License.
 --]]
 local Client = require('./init').Client
 
-local client = Client:new('', '', nil)
+local client = Client:new('ryanphillips', '9McmUY54', nil)
 client.entities.get(function(err, results)
   if err then
     p(err)
