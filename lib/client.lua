@@ -35,7 +35,7 @@ local MAAS_CLIENT_DEFAULT_VERSION
 
 if process.env.STAGING then
   MAAS_CLIENT_KEYSTONE_URL = 'https://staging.identity.api.rackspacecloud.com/v2.0'
-  MAAS_CLIENT_DEFAULT_HOST = 'cmstaging.api.rackspacecloud.com'
+  MAAS_CLIENT_DEFAULT_HOST = 'staging.monitoring.api.rackspacecloud.com'
   MAAS_CLIENT_DEFAULT_VERSION = 'v1.0'
 else
   MAAS_CLIENT_KEYSTONE_URL = 'https://identity.api.rackspacecloud.com/v2.0'
