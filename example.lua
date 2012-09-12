@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 --]]
 local Client = require('./init').Client
+local JSON = require('json')
 
-local client = Client:new('', '', nil)
+local client = Client:new('', '', {})
 client.entities.get(function(err, results)
   if err then
     p(err)
@@ -25,6 +26,7 @@ client.entities.get(function(err, results)
     print('ID = ' .. v.id)
     print('  LABEL = ' .. v.label)
     print('  MANAGED = ' .. tostring(v.managed))
+    print('  IP_ADDRESSES = ' .. JSON.stringify(v.ip_addresses))
     print('')
   end
 end)
