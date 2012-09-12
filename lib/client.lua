@@ -169,7 +169,7 @@ end
 
 function Client:_init()
   self.entities.get = function(callback)
-    self:request('GET', '/entities', nil, 200, callback)
+    self:requestPaginated('/entities', callback)
   end
 
   self.agent_tokens.get = function(callback)
@@ -252,6 +252,59 @@ function Client:request(method, path, payload, expectedStatusCode, callback)
     end
   }, function(err)
     callback(err, results)
+  end)
+end
+
+--[[
+The request.
+callback.function(err, results)
+]]--
+function Client:requestPaginated(path, callback)
+  local startMarker = nil
+  local firstRun = true
+  local results = {}
+
+  async.whilst(function()
+    if firstRun == true then
+      firstRun = false
+      return true
+    end
+
+    if startMarker ~= nil then
+      return true
+    end
+
+    return false
+  end,
+
+  function(callback)
+    local exPath = path
+
+    if startMarker ~= nil then
+      exPath = fmt('%s?marker=%s', exPath, startMarker)
+    end
+
+    self:request('GET', exPath, nil, 200, function (err, data)
+      if err then
+        callback(err)
+        return
+      end
+
+      if data.metadata.next_marker ~= nil then
+        startMarker = data.metadata.next_marker
+      end
+
+      for k, v in pairs(data.values) do
+        table.insert(results, v)
+      end
+
+      callback(nil)
+    end)
+  end,
+
+  function(err)
+    -- Keeps API compataible to wrap the values  here.
+    callback(err, {values = results})
   end)
 end
 
