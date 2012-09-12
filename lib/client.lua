@@ -46,7 +46,7 @@ end
 --[[ ClientBase ]]--
 
 local ClientBase = Object:extend()
-function ClientBase:initialize(host, port, version, apiType, options)
+function ClientBase:initialize(host, port, version, options)
   local headers = {}
 
   self.host = host
@@ -55,13 +55,10 @@ function ClientBase:initialize(host, port, version, apiType, options)
   self.apiType = apiType
   self.tenantId = nil
 
-  if self.apiType == 'public' then
-    headers['User-Agent'] = 'agent/virgo'
-  end
-
-  self.headers = headers
+  self.headers = {}
   self.options = misc.merge({}, options)
 
+  self.headers['User-Agent'] = 'agent/virgo'
   self.headers['Accept'] = 'application/json'
   self.headers['Content-Type'] = 'application/json'
 end
@@ -167,7 +164,7 @@ function Client:initialize(userId, key, options)
   self.agent_tokens = {}
   self:_init()
   ClientBase.initialize(self, MAAS_CLIENT_DEFAULT_HOST, 443,
-                        MAAS_CLIENT_DEFAULT_VERSION, 'public', options)
+                        MAAS_CLIENT_DEFAULT_VERSION, options)
 end
 
 function Client:_init()
