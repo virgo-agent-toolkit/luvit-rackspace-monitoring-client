@@ -171,7 +171,7 @@ function Client:initialize(userId, key, options)
 end
 
 function Client:_init()
-  self.entities.get = function(callback)
+  self.entities.list = function(callback)
     self:requestPaginated('/entities', callback)
   end
 
