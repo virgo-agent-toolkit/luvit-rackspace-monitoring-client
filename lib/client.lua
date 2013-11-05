@@ -164,6 +164,7 @@ function Client:initialize(userId, key, options)
   self.key = key
   self.authUrl = options.authUrl
   self.entities = {}
+  self.checks = {}
   self.agent_tokens = {}
   self:_init()
   ClientBase.initialize(self, MAAS_CLIENT_DEFAULT_HOST, 443,
@@ -193,6 +194,10 @@ function Client:_init()
 
   self.entities.list = function(callback)
     self:requestPaginated('/entities', callback)
+  end
+
+  self.checks.list = function(id, callback)
+    self:requestPaginated(fmt('/entities/%s/checks', id), callback)
   end
 
   self.agent_tokens.get = function(callback)

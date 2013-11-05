@@ -20,7 +20,7 @@ local JSON = require('json')
 
 --Configure
 local argv = require('options')
-  .usage("Usage: ./example.lua -u username -k apikey")
+  .usage("Usage: ./entities.lua -u <username> -k <apikey>")
   .describe("u", "username")
   .describe("k", "apikey")
   .demand({'u','k'})
