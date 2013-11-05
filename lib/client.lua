@@ -196,6 +196,26 @@ function Client:_init()
     self:requestPaginated('/entities', callback)
   end
 
+  self.checks.create = function(entity, params, callback)
+    self:request('POST', fmt('/entities/%s/checks', entity), params, 201, function(err, entityUrl)
+      if err then
+        callback(err)
+        return
+      end
+      callback(nil, string.match(entityUrl, fmt('entities/%s/checks/(.*)', entity)))
+    end)
+  end
+
+  self.checks.update = function(entity, params, callback)
+    self:request('POST', fmt('/entities/%s/checks', entity), params, 204, function(err, entityUrl)
+      if err then
+        callback(err)
+        return
+      end
+      callback(nil, string.match(entityUrl, fmt('entities/%s/checks/(.*)', entity)))
+    end)
+  end
+
   self.checks.list = function(id, callback)
     self:requestPaginated(fmt('/entities/%s/checks', id), callback)
   end
