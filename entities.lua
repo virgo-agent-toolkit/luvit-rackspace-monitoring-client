@@ -1,3 +1,5 @@
+#!/usr/bin/env luvit
+
 --[[
 Copyright 2012 Rackspace
 
@@ -16,8 +18,17 @@ limitations under the License.
 local Client = require('./init').Client
 local JSON = require('json')
 
-local client = Client:new('', '', {})
-client.entities.get(function(err, results)
+--Configure
+local argv = require('options')
+  .usage("Usage: ./entities.lua -u <username> -k <apikey>")
+  .describe("u", "username")
+  .describe("k", "apikey")
+  .demand({'u','k'})
+  .argv("u:k:")
+
+
+local client = Client:new(argv.args.u, argv.args.k, {})
+client.entities.list(function(err, results)
   if err then
     p(err)
     return
