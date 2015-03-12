@@ -23,6 +23,7 @@ local misc = require('./misc')
 local request = require('request').request
 local string = require('string')
 local table = require('table')
+p('here')
 
 local MAAS_CLIENT_KEYSTONE_URL
 local MAAS_CLIENT_DEFAULT_HOST
@@ -42,18 +43,16 @@ function ClientBase:initialize(host, options)
   self.host = host
   self.tenantId = nil
   self._mfaCallback = nil
-
-  self.headers = {}
   self.options = misc.merge({}, options)
-
-  self.headers['User-Agent'] = options.user_agent or 'agent/luvit-keystone-client'
-  self.headers['Accept'] = 'application/json'
-  self.headers['Content-Type'] = 'application/json'
+  self.headers = {}
+  table.insert(self.headers, { 'user-agent', options.user_agent or 'agent/luvit-keystone-client' })
+  table.insert(self.headers, { 'content-type', 'application/json' })
+  table.insert(self.headers, { 'transfer-encoding', 'chunked' })
 end
 
 function ClientBase:setToken(token, expiry)
+  table.insert(self.headers, { 'x-auth-token', token })
   self.token = token
-  self.headers['X-Auth-Token'] = token
   self._tokenExpiry = expiry
 end
 
@@ -82,18 +81,13 @@ function ClientBase:_parseData(data)
 end
 
 function ClientBase:request(method, path, payload, expectedStatusCode, callback)
-  local options
-  local headers
-  local extraHeaders = {}
-
   -- setup payload
+  local extraHeaders = {}
   if payload then
     if type(payload) == 'table' and self.headers['Content-Type'] == 'application/json' then
       payload = JSON.stringify(payload)
     end
-    extraHeaders['Content-Length'] = #payload
-  else
-    extraHeaders['Content-Length'] = 0
+    table.insert(extraHeaders, { 'content-length', #payload })
   end
 
   -- setup path
@@ -103,9 +97,8 @@ function ClientBase:request(method, path, payload, expectedStatusCode, callback)
     path = fmt('%s/%s', self.host, path)
   end
 
-  headers = misc.merge(self.headers, extraHeaders)
-
-  options = {
+  local headers = misc.merge(self.headers, extraHeaders)
+  local options = {
     url = path,
     headers = headers,
     method = method,
@@ -256,8 +249,7 @@ function Client:request(method, path, payload, expectedStatusCode, callback)
       end
       self:auth(authUrls, self.userId, self.key, function(err, obj)
         if err then
-          callback(err)
-          return
+          return callback(err)
         end
         self:setToken(obj.token, obj.expires)
         self:setTenantId(obj.tenantId)
