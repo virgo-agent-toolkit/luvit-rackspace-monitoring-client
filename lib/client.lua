@@ -1,5 +1,5 @@
 --[[
-Copyright 2012 Rackspace
+Copyright 2015 Rackspace
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,19 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 --]]
 local JSON = require('json')
-local Object = require('core').Object
-local string = require('string')
-local fmt = require('string').format
-local table = require('table')
-
-local request = require('request').request
-
-local async = require('async')
-
-local misc = require('./misc')
-local errors = require('./errors')
-
 local KeystoneClient = require('keystone').Client
+local Object = require('core').Object
+local async = require('async')
+local errors = require('./errors')
+local fmt = require('string').format
+local misc = require('./misc')
+local request = require('request').request
+local string = require('string')
+local table = require('table')
 
 local MAAS_CLIENT_KEYSTONE_URL
 local MAAS_CLIENT_DEFAULT_HOST
@@ -37,7 +33,6 @@ if process.env.STAGING then
 else
   MAAS_CLIENT_KEYSTONE_URL = 'https://identity.api.rackspacecloud.com/v2.0/tokens'
   MAAS_CLIENT_DEFAULT_HOST = 'https://monitoring.api.rackspacecloud.com/v1.0'
-  p('here')
 end
 
 --[[ ClientBase ]]--
@@ -251,7 +246,6 @@ callback.function(err, results)
 ]]--
 function Client:request(method, path, payload, expectedStatusCode, callback)
   local authUrls = self.authUrl and { self.authUrl } or { MAAS_CLIENT_KEYSTONE_URL }
-  local authPayload
   local results
 
   async.waterfall({
@@ -315,8 +309,7 @@ function Client:requestPaginated(path, callback)
 
     self:request('GET', exPath, nil, 200, function (err, data)
       if err then
-        callback(err)
-        return
+        return callback(err)
       end
 
       startMarker = data.metadata.next_marker
@@ -339,10 +332,7 @@ function Client:tokenValid()
   if self.token then
     return true
   end
-
-  -- TODO add support for expiry
-
-  return nil
+  return false
 end
 
 exports.Client = Client
