@@ -17,9 +17,7 @@ local JSON = require('json')
 local Object = require('core').Object
 local string = require('string')
 local fmt = require('string').format
-local url = require('url')
 local table = require('table')
-local Error = require('core').Error
 
 local request = require('request').request
 
@@ -32,7 +30,6 @@ local KeystoneClient = require('keystone').Client
 
 local MAAS_CLIENT_KEYSTONE_URL
 local MAAS_CLIENT_DEFAULT_HOST
-local MAAS_CLIENT_DEFAULT_VERSION
 
 if process.env.STAGING then
   MAAS_CLIENT_KEYSTONE_URL = 'https://staging.identity.api.rackspacecloud.com/v2.0/tokens'
@@ -40,16 +37,14 @@ if process.env.STAGING then
 else
   MAAS_CLIENT_KEYSTONE_URL = 'https://identity.api.rackspacecloud.com/v2.0/tokens'
   MAAS_CLIENT_DEFAULT_HOST = 'https://monitoring.api.rackspacecloud.com/v1.0'
+  p('here')
 end
 
 --[[ ClientBase ]]--
 
 local ClientBase = Object:extend()
 function ClientBase:initialize(host, options)
-  local headers = {}
-
   self.host = host
-  self.apiType = apiType
   self.tenantId = nil
   self._mfaCallback = nil
 
@@ -350,6 +345,4 @@ function Client:tokenValid()
   return nil
 end
 
-local exports = {}
 exports.Client = Client
-return exports

@@ -1,12 +1,15 @@
 return {
   name = "rackspace-monitoring-client",
-  version = "0.1.0",
+  version = "0.2.0",
   description = "Rackspace Monitoring Client",
   author = "Ryan Phillips <ryan.phillips@rackspace.com>",
-  contributors = {
-  },
   dependencies = {
-    ["async"] = "https://github.com/racker/luvit-async/zipball/master",
-    ["keystone"] = "https://github.com/racker/luvit-keystone-client/zipball/master"
+    "luvit/luvit@2.0.0",
+    "rphillips/async@0.0.2",
+    "virgo-agent-toolkit/request@0.2.0",
+    "virgo-agent-toolkit/keystone-client@0.2.0",
   },
+  files = {
+    "**.lua"
+  }
 }

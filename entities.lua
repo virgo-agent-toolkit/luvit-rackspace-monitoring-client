@@ -15,23 +15,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 --]]
-local Client = require('./init').Client
+local Client = require('.').Client
 local JSON = require('json')
 
---Configure
-local argv = require('options')
-  .usage("Usage: ./entities.lua -u <username> -k <apikey>")
-  .describe("u", "username")
-  .describe("k", "apikey")
-  .demand({'u','k'})
-  .argv("u:k:")
-
-
-local client = Client:new(argv.args.u, argv.args.k, {})
+local client = Client:new('', '', {})
 client.entities.list(function(err, results)
   if err then
-    p(err)
-    return
+    return p(err)
   end
   for k, v in pairs(results.values) do
     print('ID = ' .. v.id)
