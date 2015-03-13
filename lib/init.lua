@@ -110,7 +110,7 @@ function ClientBase:request(method, path, payload, expectedStatusCode, callback)
     options.proxy = process.env.HTTPS_PROXY
   end
 
-  request(options, function(res)
+  request(options, function(err, res)
     local data = ''
     res:on('data', function(chunk)
       data = data .. chunk
