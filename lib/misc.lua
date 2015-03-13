@@ -15,7 +15,7 @@ limitations under the License.
 --]]
 
 -- merge tables
-function merge(...)
+function exports.merge(...)
   local args = {...}
   local first = args[1]
   for i, _ in ipairs(args) do
@@ -28,7 +28,3 @@ function merge(...)
   end
   return first
 end
-
-local exports = {}
-exports.merge = merge
-return exports

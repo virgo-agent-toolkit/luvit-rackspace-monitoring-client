@@ -1,5 +1,5 @@
 --[[
-Copyright 2012 Rackspace
+Copyright 2015 Rackspace
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,25 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 --]]
 local JSON = require('json')
-local Object = require('core').Object
-local string = require('string')
-local fmt = require('string').format
-local url = require('url')
-local table = require('table')
-local Error = require('core').Error
-
-local request = require('request').request
-
-local async = require('async')
-
-local misc = require('./misc')
-local errors = require('./errors')
-
 local KeystoneClient = require('keystone').Client
+local Object = require('core').Object
+local async = require('async')
+local errors = require('./errors')
+local fmt = require('string').format
+local misc = require('./misc')
+local request = require('request').request
+local string = require('string')
+local table = require('table')
+p('here')
 
 local MAAS_CLIENT_KEYSTONE_URL
 local MAAS_CLIENT_DEFAULT_HOST
-local MAAS_CLIENT_DEFAULT_VERSION
 
 if process.env.STAGING then
   MAAS_CLIENT_KEYSTONE_URL = 'https://staging.identity.api.rackspacecloud.com/v2.0/tokens'
@@ -46,24 +40,19 @@ end
 
 local ClientBase = Object:extend()
 function ClientBase:initialize(host, options)
-  local headers = {}
-
   self.host = host
-  self.apiType = apiType
   self.tenantId = nil
   self._mfaCallback = nil
-
-  self.headers = {}
   self.options = misc.merge({}, options)
-
-  self.headers['User-Agent'] = options.user_agent or 'agent/luvit-keystone-client'
-  self.headers['Accept'] = 'application/json'
-  self.headers['Content-Type'] = 'application/json'
+  self.headers = {}
+  table.insert(self.headers, { 'user-agent', options.user_agent or 'agent/luvit-keystone-client' })
+  table.insert(self.headers, { 'content-type', 'application/json' })
+  table.insert(self.headers, { 'transfer-encoding', 'chunked' })
 end
 
 function ClientBase:setToken(token, expiry)
+  table.insert(self.headers, { 'x-auth-token', token })
   self.token = token
-  self.headers['X-Auth-Token'] = token
   self._tokenExpiry = expiry
 end
 
@@ -92,18 +81,13 @@ function ClientBase:_parseData(data)
 end
 
 function ClientBase:request(method, path, payload, expectedStatusCode, callback)
-  local options
-  local headers
-  local extraHeaders = {}
-
   -- setup payload
+  local extraHeaders = {}
   if payload then
     if type(payload) == 'table' and self.headers['Content-Type'] == 'application/json' then
       payload = JSON.stringify(payload)
     end
-    extraHeaders['Content-Length'] = #payload
-  else
-    extraHeaders['Content-Length'] = 0
+    table.insert(extraHeaders, { 'content-length', #payload })
   end
 
   -- setup path
@@ -113,9 +97,8 @@ function ClientBase:request(method, path, payload, expectedStatusCode, callback)
     path = fmt('%s/%s', self.host, path)
   end
 
-  headers = misc.merge(self.headers, extraHeaders)
-
-  options = {
+  local headers = misc.merge(self.headers, extraHeaders)
+  local options = {
     url = path,
     headers = headers,
     method = method,
@@ -256,7 +239,6 @@ callback.function(err, results)
 ]]--
 function Client:request(method, path, payload, expectedStatusCode, callback)
   local authUrls = self.authUrl and { self.authUrl } or { MAAS_CLIENT_KEYSTONE_URL }
-  local authPayload
   local results
 
   async.waterfall({
@@ -267,8 +249,7 @@ function Client:request(method, path, payload, expectedStatusCode, callback)
       end
       self:auth(authUrls, self.userId, self.key, function(err, obj)
         if err then
-          callback(err)
-          return
+          return callback(err)
         end
         self:setToken(obj.token, obj.expires)
         self:setTenantId(obj.tenantId)
@@ -320,8 +301,7 @@ function Client:requestPaginated(path, callback)
 
     self:request('GET', exPath, nil, 200, function (err, data)
       if err then
-        callback(err)
-        return
+        return callback(err)
       end
 
       startMarker = data.metadata.next_marker
@@ -344,12 +324,7 @@ function Client:tokenValid()
   if self.token then
     return true
   end
-
-  -- TODO add support for expiry
-
-  return nil
+  return false
 end
 
-local exports = {}
 exports.Client = Client
-return exports
